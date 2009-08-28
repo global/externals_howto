@@ -58,90 +58,88 @@ a linguagem popular utilizada para criar o Pd.
 \vfill
 \newpage
 
-\section{definitions and prerequisites}
-Pd refers to the graphical real-time computer-music environment {\em Pure Data}
-by Miller~S.~Puckette.
+\section{definições e pré-requisitos}
+Pd ({\em Pure Data}) refere-se ao ambiente gráfico de tempo real para composição musical pelo computador
+criado por Miller~S.~Puckette.
 
-To fully understand this document, it is necessary to
-be acquainted with Pd and to 
-have a general understanding of programming techniques especially in {\tt C}.
+Para compreender este documento é necessário saber usar o Pd e 
+conhecer técnicas de programação especialmente em {\tt C}.
 
-To write externals yourself, a {\tt C}-compiler that supports the
-{\tt ANSI-C}-Standard, like the {\em Gnu C-compiler} (gcc) on linux-systems or
-{\em Visual-C++} on windos-plattforms, will be necessary.
+Para você escrever externals, um compilador que suporta o 
+{\tt ANSI-C}-Standard como o {\em Gnu C-compiler} (gcc) nos sistemas Linux ou 
+{\em Visual-C++} em plataformas Windows será necessário.
 
-\subsection{classes, instances, objects}
-Pd is written in the programming-language {\tt C}.
-Due to its graphical nature, Pd is a {\em object-oriented} system.
-Unfortunately {\tt C} does not support very well the use of classes.
-Thus the resulting source-code is not as elegant as {\tt C++}-code would be, for instance.
+\subsection{classes, instâncias, objetos}
+Pd está escrito na linguagem {\tt C}.
+Devido a sua natureza gráfica, Pd é um novo sistema {\em orientado a objetos}.
+Infelizmente {\tt C} não suporta muito bem o uso de classes.
+Então, o código resultante não é tão elegante como em {\tt C++} seria, por exemplo.
 
-In this document, the expression {\em class} refers to the realisation of a concept
-combining data and manipulators on this data.
+Neste documento, a expressão {\em classe} refere-se à realização de um conceito 
+combinando dados e manipuladores destes.
 
-Concrete {\em instances of a class} are called {\em objects}.
+{\em Instâncias de uma classe} concretas são chamadas de {\em objetos}.
 
-\subsection{internals, externals und libraries}
+\subsection{internals, externals e bibliotecas}
 
-To avoid confusion of ideas, the expressions {\em internal}, {\em external} and
-{\em library} should be explained here.
+Para evitar confusões de idéias, as expressões {\em internal}, {\em external} e
+{\em biblioteca (library)} serão explicadas aqui.
 
 \paragraph{Internal}
-An {\em internal} is a class that is built into Pd.
-Plenty of primitives, such as ``+'', ``pack'' or ``sig\~\/'' are {\em internals}.
+Um {\em internal} é uma classe construída dentro do Pd.
+Várias primitivas como ``+'', ``pack'' ou ``sig\~\/'' são {\em internals}.
 
 \paragraph{External}
-An {\em external} is a class that is not built into Pd but is loaded at runtime.
-Once loaded into Pd's memory, {\em externals} cannot be distinguished from
-{\em internals} any more.
+Um {\em external} é uma classe não construída dentro do Pd, mas carregada em tempo de execução.
+Uma vez carregada na memória do Pd, {\em externals} não se distinguem dos {\em internals}.
 
-\paragraph{Library}
-A {\em library} is a collection of {\em externals} that are compiled into a 
-single binary-file.
+\paragraph{Biblioteca (Library)}
+Uma {\em biblioteca (library)} é uma coleção de {\em externals} compilados dentro de um único arquivo binário. 
 
-{\em Library}-files have to follow a system dependent naming convention:
+Arquivos-{\em biblioteca} seguem a seguinte convenção de nomes: 
 
 \begin{tabular}{c||c|c|c}
-library & linux&irix&Win32 \\
+biblioteca & linux&irix&Win32 \\
 \hline
-{\tt my\_lib}&{\tt  my\_lib.pd\_linux}&{\tt  my\_lib.pd\_irix}&
-{\tt  my\_lib.dll}\\
+{\tt minha\_lib}&{\tt  minha\_lib.pd\_linux}&{\tt  minha\_lib.pd\_irix}&
+{\tt  minha\_lib.dll}\\
 \end{tabular}
 
-The simplest form of a {\em library} includes exactly one {\em external}
-bearing the same name as the {\em library}.
+A forma mais simples de uma {\em biblioteca} inclui exatamente um {\em external}
+contendo o mesmo nome da {\em biblioteca}.
 
-Unlike {\em externals}, {\em libraries} can be imported by Pd with special operations.
-After a {\em library} has been imported,
-all included {\em externals} have been loaded into memory and are available as objects.
+Diferente dos {\em externals}, {\em bibliotecas} podem ser importadas pelo Pd com operações especiais.
+Depois de uma {\em biblioteca} ser importada,
+todos os {\em externals} são carregados na memória e estão disponíveis como objetos.
 
-Pd supports to modes to import {\em libraries}:
+Pd suporta alguns modos para importar as {\em bibliotecas}:
 
 \begin{itemize}
-\item via the command line-option ``{\tt -lib my\_lib}''
-\item by creating an object ``{\tt my\_lib}''
+\item via opção em linha de comando ``{\tt -lib minha\_lib}''
+\item criando um objeto chamado ``{\tt minha\_lib}''
+\item criando o arquivo .pd dentro do mesmo diretório da biblioteca
 \end{itemize}
 
-The first method loads a {\em library} when Pd is started.
-This method is preferably used for {\em libraries} that contain several {\em externals}.
+O primeiro e último métodos carregam a {\em biblioteca} na memória quando o Pd é iniciado.
+O primeiro método é mais usado para {\em bibliotecas} que contém muitos {\em externals}.
 
-The other method should be used for {\em libraries} that contain exactly
-one {\em external} bearing the same name.
-Pd checks first, whether a class named ``my\_lib'' is already loaded.
-If this is not the case\footnote{
-If a class ``my\_lib'' is already existent, an object ``my\_lib'' will be instantiated
-and the procedure is done. 
-Thus, no {\em library} has been loaded.
-Therefore no {\em library} that is named like an already used class-name like, say, ``abs'',
-can be loaded.}, all paths are searched for a file called
-``{\tt my\_lib.pd\_linux}''\footnote{or another system-dependent filename-extensions (s.a.)}.
-If such file is found, all included {\em externals} are loaded into memory by calling a
-routine \verb+my_lib_setup()+.
-After loading, a class ``my\_lib'' is (again) looked for as a (newly loaded) {\em external}.
-If so, an instance of this class is created, else the instantiation fails and an error is
-printed.
-Anyhow, all {\em external}-classes declared in the {\em library} are loaded by now.
+O outro método deve ser utilizado em {\em bibliotecas} que contém exatamente 
+um {\em external} com o mesmo nome.
 
+Pd checa primeiro se a classe nomeada ``minha\_lib'' está carregada.
+Se não é o caso \footnote{
+Se a classe ``minha\_lib'' já existe, um objeto ``minha\_lib'' será instanciado e o procedimento
+termina. 
+Assim, nenhuma {\em biblioteca} foi carregada. 
+Contudo, nenhuma {\em biblioteca} com um nome já utilizado em alguma outra classe, como por exemplo ``abs'',
+pode ser carregada.}, é feita uma busca em todos os caminhos pelo arquivo 
+``{\tt my\_lib.pd\_linux}''\footnote{ou outra extensão de arquivo dependente no sistema (s.a.)}.
+Se tal arquivo é encontrado, todos os {\em externals} incluídos são carregados na memória chamando
+a rotina \verb+minha_lib_setup()+.
+
+Após carregar, a classe ``my\_lib'' é (de novo) procurada como (recentemente carregado) {\em external}.
+Se encontrada, uma instância da classe é criada, caso contrário, a instanciação falha e um erro é impresso.
+Todas as {\em external}-classes declaradas na {\em biblioteca} são carregadas a partir de agora.
 
 \section{my first external: {\tt helloworld}}
 Usually the first attempt learning a programming-language is a ``hello world''-application.
