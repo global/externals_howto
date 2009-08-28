@@ -58,7 +58,7 @@ clean:
 
 cleaner: clean
 	-rm -f *.ps *.pdf
-	-rm -rf $(HTMLDIR_EN) $(HTMLDIR_DE)
+	-rm -rf $(HTMLDIR_EN) $(HTMLDIR_DE) $(HTMLDIR_PT_BR)
 
 distclean: cleaner
 	@for d in ${HOWTO_EXAMPLES}; do ${MAKE} -C $$d clean; done
