@@ -142,24 +142,22 @@ Após carregar, a classe ``my\_lib'' é (de novo) procurada como (recentemente car
 Se encontrada, uma instância da classe é criada, caso contrário, a instanciação falha e um erro é impresso.
 Todas as {\em external}-classes declaradas na {\em biblioteca} são carregadas a partir de agora.
 
-\section{my first external: {\tt helloworld}}
-Usually the first attempt learning a programming-language is a ``hello world''-application.
+\section{meu primeiro external: {\tt helloworld}}
+Geralmente a primeira tentativa de se aprender uma linguagem de programação é através de uma aplicação ``hello world'' (olá mundo);
 
-In our case, an object class should be created, that prints the line ``hello world!!'' to
-the standard error every time it is triggered with a ``bang''-message.
+No nosso caso, uma classe de objeto deve ser criada e erá imprimir a linha ``hello world!!'' na saída
+de erro a cada tentativa de habilitar com um ``bang''.
 
-
-
-\subsection{the interface to Pd}
-To write a Pd-external a well-defined interface is needed.
-This is provided in the header-file ``m\_pd.h''.
+\subsection{a interface do Pd}
+Para escrever um external, um interface bem definida é necessário. Ela é disponibilizada
+pelo cabeçalho ``m\_pd.h''.
 
 \begin{verbatim}
 #include "m_pd.h"
 \end{verbatim}
 
-\subsection{a class and its data space}
-First a new class has to be prepared and the data space for this class has to be defined.
+\subsection{uma classe e seu espaço de dados}
+Primeiro, uma nova classe tem que ser preparada e seus dados definidos.
 
 \begin{verbatim}
 static t_class *helloworld_class;
@@ -169,29 +167,27 @@ typedef struct _helloworld {
 } t_helloworld;
 \end{verbatim}
 
-\verb+hello_worldclass+ is going to be a pointer to the new class.
+\verb+hello_worldclass+ será um ponteiro para a nova classe.
 
-The structure \verb+t_helloworld+ (of the type \verb+_helloworld+) is
-the data space of the class.
+A estrutura \verb+t_helloworld+ (do tipo \verb+_helloworld+) é o espaço de
+dados da classe.
 
-An absolutely necessary element of the data space is a variable of the type
-\verb+t_object+, which is used to store internal object-properties like
-the graphical presentation of the object or data about inlets and outlets.
+Um elemento obrigatório dessa estrutura é a variável do tipo 
+\verb+t_object+, a qual é utilizada para armazenar propriedades internas do objeto como
+a representação gráfica do objeto ou dados sobre inlets e outlets.
 
-\verb+t_object+ has to be the first entry in the structure !
+\verb+t_object+ deve ser a primeira entrada da estrutura!
 
-Because a simple ``hello world''-application needs no variables,
-the structure is empty apart from the \verb+t_object+.
+Por ser uma aplicação simples, o ``hello world'' não terá nenhuma variável
+a mais na estrutura além do \verb+t_object+.
 
+\subsection{espaço de métodos}
+Além do espaço de dados, uma classe necessita de manipuladores (métodos) para
+manipular os dados. 
 
-\subsection{method space}
-Apart from the data space, a class needs a set of manipulators (methods) to
-manipulate the data with.
-
-If a message is sent to an instance of our class, a method is called.
-These methods are the interfaces to the message system of Pd.
-On principal they have no return argument and are therefore are of the
-type \verb+void+.
+Se uma mensagem é enviada para uma instância de nossa classe, um método é chamado.
+Estes métodos são interfaces para o sistema de mensagens do Pd. 
+Eles não retornam nada e, por isso, são do tipo \verb+void+.
 
 \begin{verbatim}
 void helloworld_bang(t_helloworld *x)
@@ -200,29 +196,27 @@ void helloworld_bang(t_helloworld *x)
 }
 \end{verbatim}
 
+Este método tem o argumento do tipo \verb+t_helloworld+,
+o qual nos permite manipular o espaço de dados.
 
-This method has an argument of the type \verb+t_helloworld+,
-which would enable us to manipulate the data space.
+Como queremos apenas imprimir ``Hello world!''
+(e nosso espaço de dados é um pouco vazio), não iremos fazer qualquer tipo
+de manipulação. 
 
-Since we only want to output ``Hello world!''
-(and, by the way, our data space is quite sparse),
-we renounce a manipulation.
+O comando \verb+post(char *c,...)+ envia uma string para a saída de erro padrão. 
+Um ENTER é adicionado automaticamente. 
+O comando \verb+post+- funciona como o comando {\tt C} \verb+printf()+.
 
-The command \verb+post(char *c,...)+ sends a string to the standard error.
-A carriage return is added automatically.
-Apart from this, the \verb+post+-command works like the {\tt C}-command \verb+printf()+.
+\subsection{geração de uma nova classe}
+Para gerar uma nova classe, informações do espaço de dados e do espaço de métodos dessa classe
+devem ser passadas ao Pd quandoa biblioteca é carregada.
 
-\subsection{generation of a new class}
-To generate a new class, information of the data space and the method space of this class,
-have to be passed to Pd when a library is loaded.
-
-On loading a new library ``my\_lib'',
-Pd tries to call a function ``my\_lib\_setup()''.
-This function (or functions called by it) 
-declares the new classes and their properties.
-It is only called once, when the library is loaded.
-If the function-call fails (e.g., because no function of the specified name is present)
-no external of the library will be loaded.
+Ao carregar a biblioteca ``my\_lib'',
+Pd tenta carregar a função ``my\_lib\_setup()''.
+Esta função (ou funções chamadas por ela) declara uma nova classe e suas propriedades.
+É chamada apenas uma vez, quando a biblioteca é carregada.
+Se a função falha (por exemplo, se o nome da função não estiver presente),
+nenhum external da biblioteca será carregado. 
 
 \begin{verbatim}
 void helloworld_setup(void)
@@ -238,55 +232,52 @@ void helloworld_setup(void)
 
 \paragraph{class\_new}
 
-The function \verb+class_new+ creates a new class and returns a pointer to this prototype.
+A função \verb+class_new+ cria uma nova classe e retorna um ponteiro para seu protótipo. 
 
-The first argument is the symbolic name of the class.
+O primeiro argumento é o nome simbólico da classe.
 
-The next two arguments define the constructor and destructor of the class.
+Os próximos 2 argumentos definem o construtor e o destrutor da classe. 
 
-Whenever a class object is created in a Pd-patch,
-the class-constructor \verb+(t_newmethod)helloworld_new+ instantiates the object
-and initialises the data space.
+Sempre que um objeto da classe é criado em um patch do Pd, 
+o construtor da classe \verb+(t_newmethod)helloworld_new+ instancia o objeto e 
+inicializa o seu espaço de dados. 
 
-Whenever an object is destroyed
-(either by closing the containing patch or by deleting the object from the patch)
-the destructor frees the dynamically reserved memory.
-The allocated memory for the static data space is automatically reserved and freed.
+Sempre que o objeto é destruído (seja por fechar o patch ou por deletar o objeto do patch), 
+o destrutor libera a memória dinamicamente alocada. 
+A memória alocada para os dados estáticos são automaticamente reservados e liberados.
 
-Therefore we do not have to provide a destructor in this example, the argument
-is set to ``0''.
+Como não temos que prover um destrutor para este exemplo, o argumento é passado como ``0''.
 
-To enable Pd to reserve and free enough memory for the static data space,
-the size of the data structure has to be passed as the fourth argument.
+Para habilitar o Pd reservar e liberar memória suficiente para o espaço de dados estático,
+o tamanho da estrutura é passada no quarto argumento.
 
-The fifth argument has influence on the graphical representation of the class objects.
-The default-value is \verb+CLASS_DEFAULT+ or simply ``0''.
+O quinto argumento tem influência na representação gráfica dos objetos da classe. 
+O valor padrão é \verb+CLASS_DEFAULT+ ou simplesmente ``0''.
 
-The remaining arguments define the arguments of an object and its type.
+O restante dos argumentos definem os argumentos do objeto e seus tipos. 
 
-Up to six numeric and symbolic object-arguments can be defined via
-\verb+A_DEFFLOAT+ and \verb+A_DEFSYMBOL+.
-If more arguments are to be passed to the object
-or if the order of atom types should by more flexible, 
-\verb+A_GIMME+ can be used for passing an arbitrary list of atoms.
+Até 6 argumentos númericos e simbólicos podem ser definidos via 
+\verb+A_DEFFLOAT+ e \verb+A_DEFSYMBOL+.
+Se mais argumentos são necessários para o objeto, ou se a ordem dos tipos 
+de átomos devem ser mais flexíveis,\verb+A_GIMME+ pode ser utilizada 
+para passar uma lista arbitrária de átomos.
 
-The list of object-arguments is terminated by ``0''.
-In this example we have no object-arguments at all for the class.
+A lista de argumentos do objeto deve terminar com o valor ``0''.
+Neste exemplo não temos argumentos para a classe.
 
 \paragraph{class\_addbang}
-We still have to add a method space to the class.
+Nós ainda temos que adicionar o espaço de métodos para a classe.
 
-\verb+class_addbang+ adds a method for a ``bang''-message to the class that is
-defined in the first argument.
-The added method is defined in the second argument.
+\verb+class_addbang+ adiciona o método para uma mensagem de ``bang'' para a classe
+definida no primeiro argumento. 
+O método adicionado é definido no segundo argumento.
 
 
-\subsection{constructor: instantiation of an object}
-Each time, an object is created in a Pd-patch, the
-constructor that is defined with the \verb+class_new+-command,
-generates a new instance of the class.
+\subsection{construtor: instanciação de um objeto}
+A cada vez que um objeto é criado dentro de um patch no Pd, o construtor
+definido no comando \verb+class_new+ gera uma nova instância da classe.
 
-The constructor has to be of type \verb+void *+.
+O construtor deve ser do tipo \verb+void *+.
 
 \begin{verbatim}
 void *helloworld_new(void)
@@ -297,34 +288,29 @@ void *helloworld_new(void)
 }
 \end{verbatim}
 
-
-The arguments of the constructor-method depend on the object-arguments
-defined with \verb+class_new+.
+Os argumentos do construtor dependem dos argumentos do objeto definidos com \verb+class_new+.
 
 \begin{tabular}{l|l}
-\verb+class_new+-argument&constructor-argument\\
+Argumentos do \verb+class_new+-&Argumentos do construtor\\
 \hline
 \verb+A_DEFFLOAT+&\verb+t_floatarg f+ \\
 \verb+A_DEFSYMBOL+&\verb+t_symbol *s+ \\
 \verb+A_GIMME+&\verb+t_symbol *s, int argc, t_atom *argv+
 \end{tabular}
 
-Because there are no object-arguments for our ``hello world''-class,
-the constructor has anon too.
+Como não há argumentos para a nossa classe ``hello world'', o construtor também não possui.
 
-The function \verb+pd_new+ reserves memory for the data space,
-initialises the variables that are internal to the object and
-returns a pointer to the data space.
+A função \verb+pd_new+ reserva a memória para o espaço de dados, inicializa as variáveis
+que são internas do objeto e retorna um ponteiro para o espaço de dados.
 
-The type-cast to the data space is necessary.
+A conversão (cast) do espaço de dados é necessária.
 
-Normally, the constructor would initialise the object-variables.
-However, since we have none, this is not necessary.
+Geralmente, o construtor iria iniciar as variáveis do objeto. 
+Entretanto, como não temos nenhuma, nada mais é necessário.
 
+O construtor deve retornar um ponteiro para o espaço de dados instanciado.
 
-The constructor has to return a pointer to the instantiated data space.
-
-\subsection{the code: \tt helloworld}
+\subsection{o código: \tt helloworld}
 
 \begin{verbatim}
 #include "m_pd.h"
@@ -356,6 +342,16 @@ void helloworld_setup(void) {
 }
 \end{verbatim}
 
+
+\subsection{como compilar}
+
+
+
+\subsection{como testar}
+
+Para testar o objeto criado, crie um patch .pd dentro do diretório que contém
+a biblioteca .pd\_linux gerada na seção anterior. Caso você queira salvar o patch
+em outro diretório, lembre-se de alterar o PATH ()
 
 \section{a simple external: {\tt counter}}
 
@@ -1742,7 +1738,22 @@ Writes a {\tt C}-string as an error-message to the standard error (shell).
 The object that has output the error-message is marked and
 can be identified via the Pd-menu {\em Find->Find last error}.
 
+
+\section{Glossário das traduções}
+
+A tradução de textos é uma arte que depende da leitura do tradutor, da intenção do autor e das representações semânticas de cada língua.
+Neste trabalho algumas decisões sobre traduzir ou não alguns termos foram tomadas e 
+
+external: não houve tradução. É o nome dado ao componente (objeto) escrito na linguagem de programação
+que é ligado (carregado) pelo Pd. Funciona como outro objeto primitivo qualquer.
+
+inlets: não houve tradução. Representa as entradas do objeto. 
+
+outlets: não houve tradução. Representa as saídas do objeto.
+
+
 \end{appendix}
+
 
 \end{document} 
 
