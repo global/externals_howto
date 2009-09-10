@@ -345,7 +345,10 @@ void helloworld_setup(void) {
 
 \subsection{como compilar}
 
-
+\begin{verbatim}
+cc -DPD -O2 -funroll-loops -fomit-frame-pointer -fPIC -m64 -Wall -W -Wshadow -Wstrict-prototypes -Wno-unused -Wno-parentheses -Wno-switch -c helloworld.c
+cc -m64 -export_dynamic -shared -o hello.pd_linux hello.o
+\end{verbatim}
 
 \subsection{como testar}
 
@@ -353,21 +356,24 @@ Para testar o objeto criado, crie um patch .pd dentro do diretório que contém
 a biblioteca .pd\_linux gerada na seção anterior. Caso você queira salvar o patch
 em outro diretório, lembre-se de alterar o PATH ()
 
-\section{a simple external: {\tt counter}}
 
-Now we want to realize a simple counter as an external.
-A ``bang''-trigger outputs the counter-value on the outlet and
-afterwards increases the counter-value by 1.
 
-This class is similar to the previous one,
-but the data space is extended by a variable ``counter'' and the
-result is written as a message to an outlet instead of 
-a string to the standard error.
+\section{um simples external: {\tt contador}}
 
-\subsection{object-variables}
-Of course, a counter needs a state-variable to store the actual counter-value.
+Agora queremos construir um contador como um external.
+Um ``bang'' irá imprimir o valor do contador em um outlet e depois incrementá-lo em 1.
 
-State-variables that belong to class instances belong to the data space.
+Esta classe é similar à primeira, 
+mas o espaço de dados é expandido pela variável ``counter`` e o
+resultado é escrito como uma mensagem para um outlet ao invés de
+uma string na saída de erro padrão.
+
+\subsection{variáveis objeto}
+É claro, um contador precisa de uma variável de estado para armazenar seu valor atual.
+
+Uma variável de estado que pertence à uma instância da classe, pertence ao espaço de dados.
+\footnote{NT: Perceba que mudamos o nome da estrutura que pode ser salva em um arquivo
+denominado counter.c}
 
 \begin{verbatim}
 typedef struct _counter {
@@ -376,11 +382,12 @@ typedef struct _counter {
 } t_counter;
 \end{verbatim}
 
-The integer variable \verb+i_count+ stores the counter-value.
+A variável inteira \verb+i_count+ armazena o valor do contador.
 
-\subsection{object-arguments}
-It is quite useful for a counter, if a initial value can be defined by the user.
-Therefore this initial value should be passed to the object at creation-time.
+\subsection{Argumentos do objeto}
+
+É muito útil para um contador que um valor inicial possa ser definido pelo usuário.
+Assim, este valor deve ser passado para o objeto no ato de sua criação.
 
 \begin{verbatim}
 void counter_setup(void) {
@@ -394,15 +401,15 @@ void counter_setup(void) {
 }
 \end{verbatim}
 
-So we have an additional argument in the function \verb+class_new+:
-\verb+A_DEFFLOAT+ tells Pd, that the object needs one argument of the 
-type \verb+t_floatarg+.
-If no argument is passed, this will default to ``0''.
+Então nós temos um argumento adicional na função \verb+class_new+:
+\verb+A_DEFFLOAT+ diz ao Pd que o objeto necessita de 1 argumento do tipo 
+\verb+t_floatarg+.
+Se nenhum argumento for passado, o padrão será ``0''.
 
-\subsection{constructor}
-The constructor has some new tasks.
-On the one hand, a variable value has to be initialised,
-on the other hand, an outlet for the object has to be created.
+\subsection{construtor}
+O construtor tem algumas tarefas.
+De um lado, uma variável deve ser inicializada. Do outro,
+um outlet para o objeto deve ser criado.
 
 \begin{verbatim}
 void *counter_new(t_floatarg f)
@@ -416,26 +423,27 @@ void *counter_new(t_floatarg f)
 }
 \end{verbatim}
 
-The constructor-method has one argument of type \verb+t_floatarg+ as declared
-in the setup-routine by \verb+class_new+.
-This argument is used to initialise the counter.
+O método construtor tem 1 argumento do tipo \verb+t_floatarg+ declarado na função ``setup''
+do \verb+class_new+.
+Este argumento é utilizado para inicializar o contador.
 
-A new outlet is created with the function \verb+outlet_new+.
-The first argument is a pointer to the interna of the object
-the new outlet is created for.
+Um novo outlet é criado com ao função \verb+outlet_new+.
+O primeiro argumento é um ponteiro para o objeto interno (t\_obj) para o qual
+o outlet é criado. 
 
-The second argument is a symbolic description of the outlet-type.
-Since out counter should output numeric values it is of type ``float''.
+O segundo argumento é uma descrição simbólica do tipo de outlet.
+Sabendo que o contador deve gerar na saída um valor numérico, seu tipo é ``float''.
 
-\verb+outlet_new+ returns a pointer to the new outlet and saves this very pointer
-in the \verb+t_object+-variable \verb+x_obj.ob_outlet+.
-If only one outlet is used, the pointer need not additionally be stored in the data space.
-If more than one outlets are used, the pointers have to be stored in the data space,
-because the \verb+t_object+-variable can only hold one outlet pointer.
+\verb+outlet_new+ retorna um ponteiro para o novo outlet e salva este ponteiro na
+variável \verb+t_object+ chamada \verb+x_obj.ob_outlet+.
 
-\subsection{the counter method}
-When triggered, the counter value should be sent to the outlet
-and afterwards be incremented by 1.
+Se somente um outlet é utilizado, o ponteiro não precisa ser adicionado no espaço de dados. 
+Se mais de um outlet é utilizado, os ponteiros devem ser armazenados no espaço de dados, pois
+a variável \verb+t_object+ pode armazenar somente um ponteiro de outlet. 
+
+\subsection{o método contador}
+Quando acionado, o valor do contador deve ser enviado para o outlet e
+em seguida incrementado por 1.
 
 \begin{verbatim}
 void counter_bang(t_counter *x)
@@ -446,29 +454,26 @@ void counter_bang(t_counter *x)
 }
 \end{verbatim}
 
-The function \verb+outlet_float+ sends a floating-point-value (second argument) to the outlet
-that is specified by the first argument.
+A função \verb+outlet_float+ envia um valor de ponto flutuante (segundo argumento) para o outlet
+especificado no primeiro argumento. 
 
-We first store the counter in a floating point-buffer.
-Afterwards the counter is incremented and not before that the buffer variable is sent 
-to the outlet.
+Nós primeiro armazenamos o contador em um buffer (variável temporária) de ponto flutuante.
+Assim o outlet enviará o valor antes do incremento. Depois o contador é incrementado. 
 
-What appears to be unnecessary on the first glance, makes sense after further
-inspection:
-The buffer variable has been realized as \verb+t_float+,
-since \verb+outlet_float+ expects a floating point-value and a typecast is
-inevitable.
+O que parece ser desnecessário a primeira vista, faz sentido depois de uma inspeção:
+O buffer é criado como um \verb+t_float+, desde que o \verb+outlet_float+ 
+espera um valor em ponto flutuante e uma conversão é inevitável.
 
-If the counter value was sent to the outlet before being incremented,
-this could result in an unwanted (though well defined) behaviour:
-If the counter-outlet directly triggered its own inlet,
-the counter-method would be called although the counter value was not yet incremented.
-Normally this is not what we want.
+Se o valor do contador for enviado para um outlet antes de ser incrementado,
+isso pode gerar um indesejado (mas definido) comportamento:
+Se o outlet do contador acionar seu próprio inlet diretamente, 
+o método contador pode ser chamado embora o valor do contador ainda não esteja incrementado.
+Normalmente não é isso que desejamos.
 
-The same (correct) result could of course be obtained with a single line,
-but this  would obscure the {\em reentrant}-problem.
+O mesmo (correto) resultado pode ser obtido com uma única linha, mas isso
+iria obscurecer o problema de reentrância.
 
-\subsection{the code: \tt counter}
+\subsection{o código: \tt contador}
 
 \begin{verbatim}
 #include "m_pd.h"
